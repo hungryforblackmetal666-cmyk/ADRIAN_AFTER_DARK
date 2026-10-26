@@ -31,6 +31,42 @@ jobs:
           test -f ADRIAN_AFTER_DARK_v1_0/game/script.rpy
           mkdir -p ADRIAN_AFTER_DARK_v1_0/game/characters
           cp game/characters/cast.rpy ADRIAN_AFTER_DARK_v1_0/game/characters/cast.rpy
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path("ADRIAN_AFTER_DARK_v1_0/game")
+          script = root / "script.rpy"
+          source = script.read_text()
+          if "call screen title_gate" not in source:
+              source = source.replace("label start:\\n", "label start:\\n    call screen title_gate\\n", 1)
+              script.write_text(source)
+          screens = root / "screens.rpy"
+          source = screens.read_text()
+          if "screen title_gate():" not in source:
+              gate = '''screen title_gate():
+              modal True
+              tag menu
+              add "bg city"
+              add Solid("#080b14aa")
+              frame:
+                  xalign 0.5
+                  yalign 0.5
+                  xsize 760
+                  background "#0d111be8"
+                  padding (44, 36)
+                  vbox:
+                      xalign 0.5
+                      spacing 22
+                      text "ADRIAN: AFTER DARK" size 46 color "#d9c4a0" xalign 0.5
+                      text "SANDBOX EDITION" size 22 color "#a8c5c8" xalign 0.5
+                      null height 12
+                      textbutton "NEW GAME" action Return() xalign 0.5
+                      textbutton "LOAD GAME" action ShowMenu("load") xalign 0.5
+                      textbutton "SETTINGS" action ShowMenu("preferences") xalign 0.5
+                      textbutton "QUIT" action Quit(confirm=True) xalign 0.5
+          
+          '''
+              screens.write_text(gate + source)
+          PY
 
       - name: Download Ren'Py SDK and RAPT
         run: |
