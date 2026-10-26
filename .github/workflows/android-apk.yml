@@ -27,7 +27,7 @@ jobs:
 
       - name: Extract Ren'Py project
         run: |
-          unzip -q ADRIAN_AFTER_DARK_v1_0_Playable_Source.zip
+          unzip -q  ADRIAN_AFTER_DARK_v1_0_Visual_Update.zip
           test -f ADRIAN_AFTER_DARK_v1_0/game/script.rpy
           mkdir -p ADRIAN_AFTER_DARK_v1_0/game/characters
           cp game/characters/cast.rpy ADRIAN_AFTER_DARK_v1_0/game/characters/cast.rpy
