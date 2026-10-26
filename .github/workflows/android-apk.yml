@@ -1,0 +1,109 @@
+name: Build Android test APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install system tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl unzip zip
+
+      - name: Extract Ren'Py project
+        run: |
+          unzip -q ADRIAN_AFTER_DARK_v1_0_Playable_Source.zip
+          test -f ADRIAN_AFTER_DARK_v1_0/game/script.rpy
+          mkdir -p ADRIAN_AFTER_DARK_v1_0/game/characters
+          cp game/characters/cast.rpy ADRIAN_AFTER_DARK_v1_0/game/characters/cast.rpy
+
+      - name: Download Ren'Py SDK and RAPT
+        run: |
+          curl -fL --retry 3 https://www.renpy.org/dl/8.5.3/renpy-8.5.3-sdk.tar.bz2 -o /tmp/renpy-sdk.tar.bz2
+          mkdir -p /tmp/renpy-sdk
+          tar -xjf /tmp/renpy-sdk.tar.bz2 -C /tmp/renpy-sdk
+          SDK_DIR="$(find /tmp/renpy-sdk -maxdepth 2 -type f -name renpy.sh -printf '%h\n' | head -n 1)"
+          test -n "$SDK_DIR"
+          chmod +x "$SDK_DIR/renpy.sh"
+          curl -fL --retry 3 https://www.renpy.org/dl/8.5.3/renpy-8.5.3-rapt.zip -o /tmp/rapt.zip
+          unzip -q /tmp/rapt.zip -d "$SDK_DIR"
+          test -d "$SDK_DIR/rapt"
+          echo "RENPY_SDK=$SDK_DIR" >> "$GITHUB_ENV"
+          echo "RAPT_DIR=$SDK_DIR/rapt" >> "$GITHUB_ENV"
+
+      - name: Install Android SDK packages
+        env:
+          RAPT_NO_TERMS: '1'
+        run: |
+          mkdir -p "$RAPT_DIR/Sdk"
+          curl -fL --retry 3 https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/android-cmdline-tools.zip
+          mkdir -p "$RAPT_DIR/Sdk/cmdline-tools"
+          unzip -q /tmp/android-cmdline-tools.zip -d /tmp/android-tools
+          mv /tmp/android-tools/cmdline-tools "$RAPT_DIR/Sdk/cmdline-tools/latest"
+          yes | "$RAPT_DIR/Sdk/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$RAPT_DIR/Sdk" --licenses
+          "$RAPT_DIR/Sdk/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$RAPT_DIR/Sdk" "platform-tools" "platforms;android-36"
+          echo "$RAPT_DIR/Sdk" > "$RAPT_DIR/sdk.txt"
+          echo "ANDROID_HOME=$RAPT_DIR/Sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$RAPT_DIR/Sdk" >> "$GITHUB_ENV"
+
+      - name: Configure package and temporary test signing key
+        run: |
+          cd ADRIAN_AFTER_DARK_v1_0
+          cat > android.json <<'JSON'
+          {
+            "package": "com.afterdark.adrian",
+            "name": "ADRIAN: AFTER DARK",
+            "icon_name": "ADRIAN AFTER DARK",
+            "version": "1.0",
+            "numeric_version": 1,
+            "orientation": "sensorLandscape",
+            "permissions": ["INTERNET", "VIBRATE"],
+            "include_pil": false,
+            "include_sqlite": false,
+            "layout": null,
+            "source": false,
+            "expansion": false,
+            "google_play_key": null,
+            "google_play_salt": null,
+            "store": "none",
+            "update_icons": true,
+            "update_always": true,
+            "heap_size": "4",
+            "update_keystores": true
+          }
+          JSON
+          keytool -genkeypair -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -keypass android -storepass android -dname "CN=ADRIAN AFTER DARK Test Build" -validity 20000
+          cp android.keystore bundle.keystore
+
+      - name: Compile universal Android APK
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/apk-output"
+          "$RENPY_SDK/renpy.sh" launcher android_build "$GITHUB_WORKSPACE/ADRIAN_AFTER_DARK_v1_0" --destination "$GITHUB_WORKSPACE/apk-output"
+
+      - name: Verify APK output
+        run: |
+          find apk-output -type f -name '*.apk' -print -quit | grep -q .
+          find apk-output -type f -name '*.apk' -printf '%p (%s bytes)\n'
+
+      - name: Upload test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: adrian-after-dark-android-test-apk
+          path: apk-output/*.apk
+          if-no-files-found: error
+          retention-days: 14
