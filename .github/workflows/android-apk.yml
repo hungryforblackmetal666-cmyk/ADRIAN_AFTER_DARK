@@ -33,6 +33,16 @@ jobs:
           cp game/characters/cast.rpy ADRIAN_AFTER_DARK_v1_0/game/characters/cast.rpy
           python3 - <<'PY'
           from pathlib import Path
+          p = Path("ADRIAN_AFTER_DARK_v1_0/game/screens.rpy")
+          s = p.read_text()
+          old = "            grid 2 2:"
+          new = "            grid 2 3:"
+          if old not in s:
+              raise SystemExit("Nu am găsit grid-ul orașului așteptat; build oprit pentru siguranță.")
+          p.write_text(s.replace(old, new, 1))
+          PY
+          python3 - <<'PY'
+          from pathlib import Path
           root = Path("ADRIAN_AFTER_DARK_v1_0/game")
           script = root / "script.rpy"
           source = script.read_text()
