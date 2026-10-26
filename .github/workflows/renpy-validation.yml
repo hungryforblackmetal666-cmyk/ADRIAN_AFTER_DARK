@@ -29,10 +29,10 @@ jobs:
           test -f ADRIAN_AFTER_DARK_v1_0/game/script.rpy
           test -f ADRIAN_AFTER_DARK_v1_0/game/screens.rpy
 
-      - name: Download Ren'Py SDK 8.5.4
+      - name: Download Ren'Py SDK 8.5.3
         run: |
           curl -fL --retry 3 \
-            https://www.renpy.org/dl/8.5.4/renpy-8.5.4-sdk.tar.bz2 \
+            https://www.renpy.org/dl/8.5.3/renpy-8.5.3-sdk.tar.bz2 \
             -o /tmp/renpy-sdk.tar.bz2
           mkdir -p /tmp/renpy-sdk
           tar -xjf /tmp/renpy-sdk.tar.bz2 -C /tmp/renpy-sdk
