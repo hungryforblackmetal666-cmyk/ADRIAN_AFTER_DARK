@@ -36,7 +36,7 @@ jobs:
           p = Path("ADRIAN_AFTER_DARK_v1_0/game/screens.rpy")
           s = p.read_text()
           old = "            grid 2 2:"
-          new = "            grid 2 3:"
+          new = "            vbox:"
           if old not in s:
               raise SystemExit("Nu am găsit grid-ul orașului așteptat; build oprit pentru siguranță.")
           p.write_text(s.replace(old, new, 1))
