@@ -1,0 +1,60 @@
+name: Ren'Py source validation
+
+on:
+  push:
+    paths:
+      - 'ADRIAN_AFTER_DARK_v1_0_Playable_Source.zip'
+      - '.github/workflows/renpy-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl bzip2
+
+      - name: Extract game source
+        run: |
+          unzip -q ADRIAN_AFTER_DARK_v1_0_Playable_Source.zip
+          test -f ADRIAN_AFTER_DARK_v1_0/game/script.rpy
+          test -f ADRIAN_AFTER_DARK_v1_0/game/screens.rpy
+
+      - name: Download Ren'Py SDK 8.5.4
+        run: |
+          curl -fL --retry 3 \
+            https://www.renpy.org/dl/8.5.4/renpy-8.5.4-sdk.tar.bz2 \
+            -o /tmp/renpy-sdk.tar.bz2
+          mkdir -p /tmp/renpy-sdk
+          tar -xjf /tmp/renpy-sdk.tar.bz2 -C /tmp/renpy-sdk
+          SDK_DIR="$(find /tmp/renpy-sdk -maxdepth 2 -type f -name renpy.sh -printf '%h\n' | head -n 1)"
+          test -n "$SDK_DIR"
+          echo "RENPY="$SDK_DIR >> "$GITHUB_ENV"
+          chmod +x "$SDK_DIR/renpy.sh"
+
+      - name: Compile Ren'Py scripts
+        run: |
+          "$RENPY/renpy.sh" "$GITHUB_WORKSPACE/ADRIAN_AFTER_DARK_v1_0" compile
+
+      - name: Run Ren'Py lint
+        run: |
+          "$RENPY/renpy.sh" "$GITHUB_WORKSPACE/ADRIAN_AFTER_DARK_v1_0" lint lint-report.txt --error-code
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: renpy-lint-report
+          path: |
+            lint-report.txt
+            ADRIAN_AFTER_DARK_v1_0/game/**/*.rpyc
+          if-no-files-found: ignore
