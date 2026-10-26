@@ -37,7 +37,7 @@ jobs:
           script = root / "script.rpy"
           source = script.read_text()
           if "call screen title_gate" not in source:
-              source = source.replace("label start:\\n", "label start:\\n    call screen title_gate\\n", 1)
+              source = source.replace("label start:\n", "label start:\n    call screen title_gate\n", 1)
               script.write_text(source)
           screens = root / "screens.rpy"
           source = screens.read_text()
