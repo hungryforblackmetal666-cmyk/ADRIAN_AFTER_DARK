@@ -93,7 +93,8 @@ jobs:
       - name: Compile universal Android APK
         run: |
           mkdir -p "$GITHUB_WORKSPACE/apk-output"
-          "$RENPY_SDK/renpy.sh" launcher android_build "$GITHUB_WORKSPACE/ADRIAN_AFTER_DARK_v1_0" --destination "$GITHUB_WORKSPACE/apk-output"
+          cd "$RENPY_SDK"
+          ./renpy.sh launcher android_build "$GITHUB_WORKSPACE/ADRIAN_AFTER_DARK_v1_0" --destination "$GITHUB_WORKSPACE/apk-output"
 
       - name: Verify APK output
         run: |
