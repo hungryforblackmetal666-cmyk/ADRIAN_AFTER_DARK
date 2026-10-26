@@ -28,6 +28,9 @@ jobs:
           unzip -q ADRIAN_AFTER_DARK_v1_0_Playable_Source.zip
           test -f ADRIAN_AFTER_DARK_v1_0/game/script.rpy
           test -f ADRIAN_AFTER_DARK_v1_0/game/screens.rpy
+          # Apply the corrected roster source committed separately in the repository.
+          mkdir -p ADRIAN_AFTER_DARK_v1_0/game/characters
+          cp game/characters/cast.rpy ADRIAN_AFTER_DARK_v1_0/game/characters/cast.rpy
 
       - name: Download Ren'Py SDK 8.5.3
         run: |
@@ -48,6 +51,17 @@ jobs:
       - name: Run Ren'Py lint
         run: |
           "$RENPY/renpy.sh" "$GITHUB_WORKSPACE/ADRIAN_AFTER_DARK_v1_0" lint lint-report.txt --error-code
+
+      - name: Package corrected source
+        if: success()
+        run: zip -qr ADRIAN_AFTER_DARK_v1_0_Corrected_Source.zip ADRIAN_AFTER_DARK_v1_0
+
+      - name: Upload corrected source
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: adrian-after-dark-corrected-source
+          path: ADRIAN_AFTER_DARK_v1_0_Corrected_Source.zip
 
       - name: Upload lint report
         if: always()
