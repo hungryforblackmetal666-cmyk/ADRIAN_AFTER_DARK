@@ -31,6 +31,9 @@ jobs:
           test -f ADRIAN_AFTER_DARK_v1_0/game/script.rpy
           mkdir -p ADRIAN_AFTER_DARK_v1_0/game/characters
           cp game/characters/cast.rpy ADRIAN_AFTER_DARK_v1_0/game/characters/cast.rpy
+          mkdir -p ADRIAN_AFTER_DARK_v1_0/game/images/characters
+          test -f game/characters/alex_bust.webp
+          cp game/characters/alex_bust.webp ADRIAN_AFTER_DARK_v1_0/game/images/characters/alex_bust.webp
           python3 - <<'PY'
           from pathlib import Path
           p = Path("ADRIAN_AFTER_DARK_v1_0/game/screens.rpy")
@@ -76,6 +79,37 @@ jobs:
           
           '''
               screens.write_text(gate + source)
+          PY
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path("ADRIAN_AFTER_DARK_v1_0/game")
+          
+          art = root / "characters_art.rpy"
+          source = art.read_text()
+          if 'image alex_bust = "images/characters/alex_bust.webp"' not in source:
+              source += '\nimage alex_bust = "images/characters/alex_bust.webp"\n'
+              art.write_text(source)
+          
+          script = root / "script.rpy"
+          source = script.read_text()
+          cafe = 'label visit_cafe:\n    scene bg cafe\n'
+          if cafe not in source:
+              raise SystemExit("Nu am găsit scena Café Sable pentru integrarea lui Alex.")
+          if 'show alex_bust at character_right' not in source:
+              source = source.replace(cafe, cafe + '    show alex_bust at character_right\n', 1)
+          if 'hide alex_bust' not in source:
+              source = source.replace('    jump city_hub\n\nlabel visit_penthouse:', '    hide alex_bust\n    jump city_hub\n\nlabel visit_penthouse:', 1)
+          script.write_text(source)
+          
+          screens = root / "screens.rpy"
+          source = screens.read_text()
+          old = '            textbutton "Phone" action Jump("phone_menu")'
+          new = old + '\n            textbutton "Skip" action Skip()'
+          if 'textbutton "Skip" action Skip()' not in source:
+              if old not in source:
+                  raise SystemExit("Nu am găsit butonul Phone din quick_menu.")
+              source = source.replace(old, new, 1)
+          screens.write_text(source)
           PY
 
       - name: Download Ren'Py SDK and RAPT
