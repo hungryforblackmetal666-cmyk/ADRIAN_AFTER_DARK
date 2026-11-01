@@ -82,6 +82,17 @@ jobs:
           PY
           python3 - <<'PY'
           from pathlib import Path
+          import re
+          gui = Path("ADRIAN_AFTER_DARK_v1_0/game/gui.rpy")
+          source = gui.read_text()
+          updated, count = re.subn(r'gui\\.init\\(\\s*\\d+\\s*,\\s*\\d+\\s*\\)', 'gui.init(2400, 1080)', source, count=1)
+          if count != 1:
+              raise SystemExit("Nu am găsit gui.init(width, height) în gui.rpy; build oprit pentru a evita un layout incomplet.")
+          gui.write_text(updated)
+          print("Virtual canvas updated to 2400x1080 (20:9).")
+          PY
+          python3 - <<'PY'
+          from pathlib import Path
           root = Path("ADRIAN_AFTER_DARK_v1_0/game")
           
           art = root / "characters_art.rpy"
