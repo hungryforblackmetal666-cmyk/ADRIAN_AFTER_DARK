@@ -40,6 +40,17 @@ jobs:
           grep -n "screen_width\|screen_height\|fullscreen\|window" ADRIAN_AFTER_DARK_v1_0/game/options.rpy || true
           python3 - <<'PY'
           from pathlib import Path
+          p = Path("ADRIAN_AFTER_DARK_v1_0/game/options.rpy")
+          source = p.read_text()
+          if "define config.screen_width = 1280" not in source or "define config.screen_height = 720" not in source:
+              raise SystemExit("Setările inițiale 1280x720 nu corespund; nu aplicăm modificarea.")
+          source = source.replace("define config.screen_width = 1280", "define config.screen_width = 2400", 1)
+          source = source.replace("define config.screen_height = 720", "define config.screen_height = 1080", 1)
+          p.write_text(source)
+          print("Ren'Py virtual resolution set to 2400x1080 (20:9).")
+          PY
+          python3 - <<'PY'
+          from pathlib import Path
           p = Path("ADRIAN_AFTER_DARK_v1_0/game/screens.rpy")
           s = p.read_text()
           old = "            grid 2 2:"
