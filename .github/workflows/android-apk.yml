@@ -111,7 +111,28 @@ jobs:
               source = source.replace(old, new, 1)
           screens.write_text(source)
           with screens.open("a") as f:
-              f.write('\\ninit python:\\n    if "quick_menu" not in config.overlay_screens:\\n        config.overlay_screens.append("quick_menu")\\n')
+              f.write("""
+          
+          screen dialog_controls_overlay():
+              zorder 200
+              if renpy.get_screen("say"):
+                  frame:
+                      xalign 0.98
+                      yalign 0.98
+                      background "#101522dd"
+                      padding (12, 8)
+                      hbox:
+                          spacing 12
+                          textbutton "SKIP" action Skip()
+                          textbutton "AUTO" action Preference("auto-forward", "toggle")
+                          textbutton "HISTORY" action ShowMenu("history")
+          
+          init python:
+              if "quick_menu" not in config.overlay_screens:
+                  config.overlay_screens.append("quick_menu")
+              if "dialog_controls_overlay" not in config.overlay_screens:
+                  config.overlay_screens.append("dialog_controls_overlay")
+          """)
           PY
 
       - name: Download Ren'Py SDK and RAPT
