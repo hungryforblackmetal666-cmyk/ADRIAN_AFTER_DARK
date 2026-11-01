@@ -84,7 +84,7 @@ jobs:
           from pathlib import Path
           options = Path("ADRIAN_AFTER_DARK_v1_0/game/options.rpy")
           source = options.read_text()
-          setting = "\\ninit python:\\n    config.keep_aspect = False  # Fill the full Android display; no side bars.\\n"
+          setting = chr(10) + "init python:" + chr(10) + "    config.keep_aspect = False  # Fill the full Android display; no side bars." + chr(10)
           if "config.keep_aspect = False" not in source:
               options.write_text(source + setting)
           PY
