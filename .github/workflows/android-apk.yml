@@ -124,6 +124,23 @@ jobs:
                       spacing 12
                       textbutton "AUTO" action Preference("auto-forward", "toggle")
                       textbutton "HISTORY" action ShowMenu("history")
+                      textbutton "SKIP MODE" action Show("skip_mode_settings")
+
+          screen skip_mode_settings():
+              modal True
+              zorder 300
+              frame:
+                  xalign 0.5
+                  yalign 0.5
+                  background "#101522ee"
+                  padding (32, 24)
+                  vbox:
+                      spacing 16
+                      text "SKIP SETTINGS" size 32
+                      text "Choose what the SKIP button can skip:"
+                      textbutton "SEEN DIALOGUE ONLY" action [Preference("skip", "seen"), Hide("skip_mode_settings")]
+                      textbutton "ALL DIALOGUE (INCLUDING NEW)" action [Preference("skip", "all"), Hide("skip_mode_settings")]
+                      textbutton "CLOSE" action Hide("skip_mode_settings")
           
           init python:
               if "quick_menu" not in config.overlay_screens:
