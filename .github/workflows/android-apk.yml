@@ -34,10 +34,10 @@ jobs:
           mkdir -p ADRIAN_AFTER_DARK_v1_0/game/images/characters
           test -f game/characters/alex_bust.webp
           cp game/characters/alex_bust.webp ADRIAN_AFTER_DARK_v1_0/game/images/characters/alex_bust.webp
-          echo "=== RENPY DISPLAY CONFIG DIAGNOSTICS ==="
-          grep -nE 'gui\\.init|config\\.screen_width|config\\.screen_height|config\\.fullscreen|config\\.window' ADRIAN_AFTER_DARK_v1_0/game/gui.rpy ADRIAN_AFTER_DARK_v1_0/game/options.rpy || true
-          echo "=== PROJECT GUI REFERENCES ==="
-          grep -RniE 'gui\\.init|screen_width|screen_height' ADRIAN_AFTER_DARK_v1_0/game --include='*.rpy' | head -40 || true
+          echo "=== GUI.RPY FIRST 100 LINES ==="
+          sed -n '1,100p' ADRIAN_AFTER_DARK_v1_0/game/gui.rpy
+          echo "=== OPTIONS DISPLAY REFERENCES ==="
+          grep -n "screen_width\|screen_height\|fullscreen\|window" ADRIAN_AFTER_DARK_v1_0/game/options.rpy || true
           python3 - <<'PY'
           from pathlib import Path
           p = Path("ADRIAN_AFTER_DARK_v1_0/game/screens.rpy")
