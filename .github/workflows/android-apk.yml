@@ -110,6 +110,8 @@ jobs:
                   raise SystemExit("Nu am găsit butonul Phone din quick_menu.")
               source = source.replace(old, new, 1)
           screens.write_text(source)
+          with screens.open("a") as f:
+              f.write('\\ninit python:\\n    if "quick_menu" not in config.overlay_screens:\\n        config.overlay_screens.append("quick_menu")\\n')
           PY
 
       - name: Download Ren'Py SDK and RAPT
