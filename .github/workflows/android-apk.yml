@@ -225,6 +225,28 @@ jobs:
 
       - name: Compile universal Android APK
         run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          root = Path(os.environ["RAPT_DIR"])
+          manifests = list(root.rglob("AndroidManifest.xml"))
+          if not manifests:
+              raise SystemExit("Nu am găsit șablonul AndroidManifest.xml în RAPT.")
+          changed = 0
+          for p in manifests:
+              source = p.read_text(errors="ignore")
+              if "<activity" not in source:
+                  continue
+              updated = source
+              # Let Android resize the game activity to the full ultrawide display.
+              updated = updated.replace("<activity", '<activity android:resizeableActivity="true" android:maxAspectRatio="2.4"', 1)
+              if updated != source:
+                  p.write_text(updated)
+                  changed += 1
+                  print("Patched Android aspect-ratio manifest:", p)
+          if changed == 0:
+              raise SystemExit("Nu am putut aplica setările de aspect ratio în manifestul RAPT.")
+          PY
           mkdir -p "$GITHUB_WORKSPACE/apk-output"
           cd "$RENPY_SDK"
           ./renpy.sh launcher android_build "$GITHUB_WORKSPACE/ADRIAN_AFTER_DARK_v1_0" --destination "$GITHUB_WORKSPACE/apk-output"
